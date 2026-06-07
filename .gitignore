@@ -1,0 +1,8 @@
+# .gitignore - Ignore temporary files and local backups for ArmoryVault Pro
+excel_import.json
+*.log
+.tmp/
+.vscode/
+.idea/
+*.suo
+*.user

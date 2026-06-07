@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArmoryVault Pro - Gun Collection Database</title>
+  <!-- SEO Tags -->
+  <meta name="description" content="A premium secure client-side application to catalog, track, and analyze your personal firearm collection.">
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- FontAwesome for Premium Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js for Beautiful Analytics Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- LOGIN & SECURE ENCLAVE OVERLAY -->
+  <div class="login-overlay active" id="loginOverlay">
+    <div class="login-card">
+      <div class="login-brand">
+        <i class="fa-solid fa-shield-halved login-logo"></i>
+        <h2>ArmoryVault <span class="text-gold">Pro</span></h2>
+        <div class="login-subtitle">Secure Access Verification</div>
+      </div>
+      
+      <!-- Phase 1: Email & Password Sign In -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" placeholder="admin@example.com" required autocomplete="email">
+        </div>
+        
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block" id="btnLoginSubmit">
+          <i class="fa-solid fa-key"></i> Authenticate
+        </button>
+      </form>
+
+      <!-- Phase 2: MFA Code Verification -->
+      <form id="mfaVerifyForm" style="display: none;">
+        <div class="mfa-instructions">
+          <i class="fa-solid fa-mobile-screen mfa-icon text-cyan"></i>
+          <h3>Enter Authenticator Code</h3>
+          <p>Please open your Authenticator app (Google or Microsoft) and type the 6-digit verification code below.</p>
+        </div>
+        
+        <div class="form-group">
+          <label for="mfaCode">Verification Code</label>
+          <input type="text" id="mfaCode" class="form-control mfa-code-input" placeholder="000 000" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-circle-check"></i> Verify Token
+        </button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnBackToLogin">
+          Cancel
+        </button>
+      </form>
+
+      <!-- Phase 3: MFA First-Time Enrollment -->
+      <div id="mfaEnrollSection" style="display: none;">
+        <div class="mfa-instructions">
+          <i class="fa-solid fa-qrcode mfa-icon text-gold"></i>
+          <h3>Setup Multi-Factor Auth</h3>
+          <p>MFA is required for your account. Scan this QR code with your Authenticator App (Google/Microsoft), then enter the code to confirm.</p>
+        </div>
+        
+        <div class="qr-container">
+          <img id="mfaQrImg" src="" alt="MFA QR Code">
+        </div>
+        
+        <div class="qr-secret-box">
+          <span class="label">Secret Key:</span>
+          <span class="value" id="mfaSecretVal">XXXX XXXX XXXX</span>
+        </div>
+
+        <form id="mfaEnrollForm">
+          <div class="form-group">
+            <label for="mfaEnrollCode">Confirmation Code</label>
+            <input type="text" id="mfaEnrollCode" class="form-control mfa-code-input" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" required autocomplete="off">
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-shield"></i> Confirm & Enable MFA
+          </button>
+        </form>
+      </div>
+
+      <div class="login-footer">
+        <i class="fa-solid fa-circle-check text-gold"></i> Military-Grade Encrypted Session
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header Section -->
+    <header>
+      <div class="brand-section">
+        <i class="fa-solid fa-shield-halved brand-icon"></i>
+        <div class="brand-title">
+          <h1>ArmoryVault <span class="text-gold">Pro</span></h1>
+          <div class="brand-subtitle">Tactical Collection Manager</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <!-- Secure User Info Badge -->
+        <div id="userInfoBadge" class="user-badge" style="display: none;">
+          <i class="fa-solid fa-user-shield text-gold user-badge-icon"></i>
+          <div class="user-badge-info">
+            <span id="userEmailLabel" class="user-email">email@test.com</span>
+            <span id="userRoleBadge" class="badge-role">Admin</span>
+          </div>
+        </div>
+        <button id="btnLogout" class="btn btn-danger" style="display: none;" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+        <button id="btnSettings" class="btn btn-secondary" title="Database Settings & Backup">
+          <i class="fa-solid fa-sliders"></i> Tools
+        </button>
+        <button id="btnAddFirearm" class="btn btn-primary">
+          <i class="fa-solid fa-plus"></i> Add Firearm
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Dashboard Section -->
+    <section class="dashboard-grid">
+      <div class="stat-card" id="statFirearms">
+        <div class="stat-info">
+          <span class="stat-label">Total Collection</span>
+          <span class="stat-value" id="valTotalCount">0</span>
+        </div>
+        <i class="fa-solid fa-gun stat-icon"></i>
+      </div>
+      
+      <div class="stat-card cyan" id="statValue">
+        <div class="stat-info">
+          <span class="stat-label">Estimated Portfolio Value</span>
+          <span class="stat-value text-cyan" id="valTotalValue">$0.00</span>
+        </div>
+        <i class="fa-solid fa-wallet stat-icon"></i>
+      </div>
+
+      <div class="stat-card" id="statManufacturers">
+        <div class="stat-info">
+          <span class="stat-label">Manufacturers</span>
+          <span class="stat-value" id="valManufacturersCount">0</span>
+        </div>
+        <i class="fa-solid fa-industry stat-icon"></i>
+      </div>
+
+      <div class="stat-card cyan" id="statCalibers">
+        <div class="stat-info">
+          <span class="stat-label">Calibers</span>
+          <span class="stat-value text-cyan" id="valCalibersCount">0</span>
+        </div>
+        <i class="fa-solid fa-bullseye stat-icon"></i>
+      </div>
+    </section>
+
+    <!-- Charts Visualization Section -->
+    <section class="charts-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title"><i class="fa-solid fa-chart-simple text-gold"></i> Portfolio Value by Manufacturer</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartManufacturerValue"></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title"><i class="fa-solid fa-chart-pie text-cyan"></i> Caliber Distribution</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartCaliberDistribution"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <section class="filter-bar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by model, serial number, caliber, manufacturer...">
+      </div>
+      
+      <div class="filter-group">
+        <div class="select-wrapper">
+          <select id="filterType" class="select-input">
+            <option value="">All Types</option>
+            <option value="Handgun">Handguns</option>
+            <option value="Rifle">Rifles</option>
+          </select>
+        </div>
+
+        <div class="select-wrapper">
+          <select id="filterOwner" class="select-input">
+            <option value="">All Owners</option>
+          </select>
+        </div>
+
+        <div class="select-wrapper">
+          <select id="filterManufacturer" class="select-input">
+            <option value="">All Manufacturers</option>
+          </select>
+        </div>
+        
+        <div class="select-wrapper">
+          <select id="filterCaliber" class="select-input">
+            <option value="">All Calibers</option>
+          </select>
+        </div>
+
+        <div class="select-wrapper">
+          <select id="sortControl" class="select-input">
+            <option value="name-asc">Sort by: Name (A-Z)</option>
+            <option value="name-desc">Sort by: Name (Z-A)</option>
+            <option value="value-desc">Sort by: Value (High to Low)</option>
+            <option value="value-asc">Sort by: Value (Low to High)</option>
+            <option value="acquired-desc">Sort by: Date Acquired (Newest)</option>
+            <option value="acquired-asc">Sort by: Date Acquired (Oldest)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Firearms Cards Grid -->
+    <section class="firearms-grid" id="firearmsGrid">
+      <!-- Cards dynamically rendered by app.js -->
+    </section>
+
+    <!-- Footer Section -->
+    <footer>
+      <div>&copy; 2026 ArmoryVault Pro. All data is kept secure on your local device.</div>
+      <div class="footer-links">
+        <span class="text-gold"><i class="fa-solid fa-circle-check"></i> System Secure</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL: ADD / EDIT FIREARM -->
+  <div class="modal-overlay" id="formModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="formModalTitle">Add Firearm</h3>
+        <button class="modal-close" id="btnCloseFormModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="firearmForm">
+        <div class="modal-body">
+          <input type="hidden" id="firearmId">
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="owner">Owner</label>
+              <input type="text" id="owner" class="form-control" placeholder="e.g. Rob, Ekiss">
+            </div>
+            
+            <div class="form-group">
+              <label for="type">Type Category *</label>
+              <select id="type" class="form-control" required style="background: rgba(10, 13, 19, 0.9);">
+                <option value="Handgun">Handgun</option>
+                <option value="Rifle" selected>Rifle</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="manufacturer">Manufacturer *</label>
+              <input type="text" id="manufacturer" class="form-control" placeholder="e.g. Glock, Ruger, Colt" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="model">Model *</label>
+              <input type="text" id="model" class="form-control" placeholder="e.g. 19 Gen 5, 10/22, Python" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="caliber">Caliber *</label>
+              <input type="text" id="caliber" class="form-control" placeholder="e.g. 9mm, .22 LR, .357 Mag, 5.56" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="serialNumber">Serial Number</label>
+              <input type="text" id="serialNumber" class="form-control" placeholder="Unique identification number">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="actionType">Action Type</label>
+              <input type="text" id="actionType" class="form-control" placeholder="e.g. Semi-Automatic, Bolt Action" list="actionSuggestions">
+              <datalist id="actionSuggestions">
+                <option value="Semi-Automatic">
+                <option value="Bolt Action">
+                <option value="Pump Action">
+                <option value="Revolver">
+                <option value="Lever Action">
+                <option value="Single Shot">
+                <option value="Break Action">
+              </datalist>
+            </div>
+            
+            <div class="form-group">
+              <label for="sightType">Sight Type</label>
+              <input type="text" id="sightType" class="form-control" placeholder="e.g. Iron Sights, Scope, Red Dot" list="sightSuggestions">
+              <datalist id="sightSuggestions">
+                <option value="Iron Sights">
+                <option value="Scope">
+                <option value="Red Dot">
+                <option value="Holographic">
+                <option value="Laser">
+                <option value="Fiber Optic">
+              </datalist>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estimatedValue">Estimated Value ($) *</label>
+              <input type="number" step="0.01" min="0" id="estimatedValue" class="form-control" placeholder="0.00" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="condition">Condition *</label>
+              <select id="condition" class="form-control" required style="background: rgba(10, 13, 19, 0.9);">
+                <option value="Mint">Mint (Like New)</option>
+                <option value="Excellent">Excellent</option>
+                <option value="Good" selected>Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Poor">Poor</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="location">Storage Location</label>
+              <input type="text" id="location" class="form-control" placeholder="e.g. Gun Safe, Bedroom Closet">
+            </div>
+            
+            <div class="form-group">
+              <label for="dateAcquired">Date Acquired</label>
+              <input type="date" id="dateAcquired" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Firearm Image</label>
+            <div class="image-upload-zone" id="imageUploadZone">
+              <div class="upload-prompt" id="uploadPrompt">
+                <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                <div class="upload-text">Drag & drop firearm image here or <strong>browse files</strong></div>
+                <div class="upload-text" style="font-size: 0.75rem; margin-top: 4px;">Supports PNG, JPG, JPEG</div>
+              </div>
+              <input type="file" id="imageFile" accept="image/*" class="file-input-hidden">
+              <div class="image-preview-container" id="imagePreviewContainer">
+                <img src="" alt="Firearm Preview" class="image-preview" id="imagePreview">
+                <button type="button" class="remove-image-btn" id="btnRemoveImage" title="Remove image"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Notes & Accessories</label>
+            <textarea id="notes" class="form-control" placeholder="E.g. Holster, modifications, scopes, purchase details..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btnCancelForm">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitForm">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: FIREARM DETAIL VIEWER -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-container detail-modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Firearm Specifications</h3>
+        <button class="modal-close" id="btnCloseDetailModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-layout">
+          <div class="detail-image-box">
+            <img src="" alt="Firearm Image" class="detail-img" id="detailImage">
+          </div>
+          
+          <div class="detail-info-box">
+            <div>
+              <div class="detail-manufacturer" id="detailManufacturer">GLOCK</div>
+              <h2 class="detail-name" id="detailName">19 Gen 5</h2>
+            </div>
+            
+            <table class="detail-specs-table">
+              <tr>
+                <td class="label">Owner</td>
+                <td class="value" id="detailOwner">N/A</td>
+              </tr>
+              <tr>
+                <td class="label">Type</td>
+                <td class="value" id="detailType">Rifle</td>
+              </tr>
+              <tr>
+                <td class="label">Caliber</td>
+                <td class="value" id="detailCaliber">9mm</td>
+              </tr>
+              <tr>
+                <td class="label">Action Type</td>
+                <td class="value" id="detailAction">N/A</td>
+              </tr>
+              <tr>
+                <td class="label">Sight Type</td>
+                <td class="value" id="detailSight">N/A</td>
+              </tr>
+              <tr>
+                <td class="label">Serial Number</td>
+                <td class="value" id="detailSerial">N/A</td>
+              </tr>
+              <tr>
+                <td class="label">Storage Location</td>
+                <td class="value" id="detailLocation">N/A</td>
+              </tr>
+              <tr>
+                <td class="label">Estimated Value</td>
+                <td class="value text-gold" id="detailValue">$0.00</td>
+              </tr>
+              <tr>
+                <td class="label">Condition</td>
+                <td class="value" id="detailCondition">Good</td>
+              </tr>
+              <tr>
+                <td class="label">Date Acquired</td>
+                <td class="value" id="detailAcquired">N/A</td>
+              </tr>
+            </table>
+
+            <div class="detail-notes-section">
+              <div class="detail-notes-title">Notes / Accessories</div>
+              <div class="detail-notes-content" id="detailNotes">No additional details recorded.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnEditDetail"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+        <button class="btn btn-danger" id="btnDeleteDetail"><i class="fa-solid fa-trash-can"></i> Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TOOLS & SETTINGS -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Database & Collection Tools</h3>
+        <button class="modal-close" id="btnCloseSettingsModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- ADMIN USER CONSOLE -->
+        <div class="settings-group" id="adminUserConsole" style="display: none; padding-bottom: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+          <div class="settings-title"><i class="fa-solid fa-users-gear text-gold"></i> Admin User Management</div>
+          <div class="settings-desc">Create new system user accounts and assign database roles. Passwords must be at least 8 alphanumeric characters.</div>
+          
+          <form id="createUserForm" style="margin-bottom: 1.5rem; background: rgba(0, 0, 0, 0.2); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div class="form-row" style="margin-bottom: 0.75rem;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="newUserEmail">User Email</label>
+                <input type="email" id="newUserEmail" class="form-control" placeholder="user@domain.com" required autocomplete="off">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="newUserPassword">Password (8+ alphanumeric)</label>
+                <input type="password" id="newUserPassword" class="form-control" placeholder="Min 8 characters" required autocomplete="off">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="newUserRole">Access Role</label>
+                <select id="newUserRole" class="form-control" required style="background: rgba(10, 13, 19, 0.9);">
+                  <option value="readonly" selected>Read Only</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+              <div class="form-group" style="display: flex; align-items: flex-end; margin-bottom: 0;">
+                <button type="submit" class="btn btn-primary btn-block" style="height: 38px;"><i class="fa-solid fa-user-plus"></i> Create User</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="user-list-container">
+            <label style="margin-bottom: 0.5rem; display: block;">Registered System Users</label>
+            <div style="max-height: 150px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(0,0,0,0.15);">
+              <table class="user-list-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                <thead style="background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border-color);">
+                  <tr>
+                    <th style="padding: 0.5rem 0.75rem; color: var(--text-muted);">Email</th>
+                    <th style="padding: 0.5rem 0.75rem; color: var(--text-muted);">Role</th>
+                  </tr>
+                </thead>
+                <tbody id="userListBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-group">
+          <div class="settings-title"><i class="fa-solid fa-file-export text-gold"></i> Backup Collection</div>
+          <div class="settings-desc">Download your entire armory database (including images) as a single JSON file. Save this file on your hard drive to safeguard your data.</div>
+          <button id="btnExportDB" class="btn btn-secondary"><i class="fa-solid fa-download"></i> Export Collection (.json)</button>
+        </div>
+
+        <div class="settings-group" id="settingsImportSection">
+          <div class="settings-title"><i class="fa-solid fa-file-import text-cyan"></i> Restore Collection</div>
+          <div class="settings-desc">Import a previously saved `.json` backup file. This will restore all your firearms and images. **Note**: This will overwrite any current database entries.</div>
+          <button id="btnTriggerImport" class="btn btn-secondary"><i class="fa-solid fa-upload"></i> Import Backup File</button>
+          <input type="file" id="importFileInput" accept=".json" class="file-input-hidden">
+        </div>
+
+        <div class="settings-group" id="settingsWipeSection">
+          <div class="settings-title" style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Wipe Database</div>
+          <div class="settings-desc">Permanently delete all firearm entries and images from your browser's local storage. This action is irreversible.</div>
+          <button id="btnWipeDB" class="btn btn-danger"><i class="fa-solid fa-trash-arrow-up"></i> Permanent Wipe</button>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCloseSettings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
