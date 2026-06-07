@@ -20,13 +20,15 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.armoryvaultpro.theme.ArmoryVaultProTheme
 
 // Set this to your published GitHub Pages URL
 // For local emulator testing against a live server, you can use "http://10.0.2.2:5500" or similar
-const val PUBLISHED_WEB_APP_URL = "https://e1027.github.io/gun-tracking-app/"
+const val PUBLISHED_WEB_APP_URL = "https://jekiss1016.github.io/GunTrackerApp/"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +53,7 @@ class MainActivity : ComponentActivity() {
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebViewScreen(url: String, modifier: Modifier = Modifier) {
-    var uploadMessageCallback: ValueCallback<Array<Uri>>? = remember { null }
+    val uploadMessageCallback = remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
 
     // File chooser launcher for camera and image gallery uploads
     val fileChooserLauncher = rememberLauncherForActivityResult(
@@ -74,11 +76,11 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier) {
             } else {
                 null
             }
-            uploadMessageCallback?.onReceiveValue(results)
+            uploadMessageCallback.value?.onReceiveValue(results)
         } else {
-            uploadMessageCallback?.onReceiveValue(null)
+            uploadMessageCallback.value?.onReceiveValue(null)
         }
-        uploadMessageCallback = null
+        uploadMessageCallback.value = null
     }
 
     AndroidView(
@@ -102,8 +104,8 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier) {
                         filePathCallback: ValueCallback<Array<Uri>>?,
                         fileChooserParams: FileChooserParams?
                     ): Boolean {
-                        uploadMessageCallback?.onReceiveValue(null)
-                        uploadMessageCallback = filePathCallback
+                        uploadMessageCallback.value?.onReceiveValue(null)
+                        uploadMessageCallback.value = filePathCallback
 
                         val intent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply {
                             type = "image/*"
@@ -113,8 +115,8 @@ fun WebViewScreen(url: String, modifier: Modifier = Modifier) {
                         try {
                             fileChooserLauncher.launch(intent)
                         } catch (e: Exception) {
-                            uploadMessageCallback?.onReceiveValue(null)
-                            uploadMessageCallback = null
+                            uploadMessageCallback.value?.onReceiveValue(null)
+                            uploadMessageCallback.value = null
                             return false
                         }
                         return true
