@@ -6,3 +6,5 @@ excel_import.json
 .idea/
 *.suo
 *.user
+node_modules/
+www/
