@@ -123,6 +123,9 @@
         <button id="btnSettings" class="btn btn-secondary" title="Database Settings & Backup">
           <i class="fa-solid fa-sliders"></i> Tools
         </button>
+        <button id="btnReport" class="btn btn-secondary" title="Generate Inventory Report">
+          <i class="fa-solid fa-file-invoice"></i> Report
+        </button>
         <button id="btnAddFirearm" class="btn btn-primary">
           <i class="fa-solid fa-plus"></i> Add Firearm
         </button>
@@ -514,6 +517,25 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btnCloseSettings">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: REPORT GENERATOR -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="modal-container detail-modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Collection Inventory Report</h3>
+        <button class="modal-close" id="btnCloseReportModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" id="reportModalBody">
+        <div id="reportTableContainer">
+          <!-- Dynamically populated report table -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnPrintReport"><i class="fa-solid fa-print"></i> Print Report</button>
+        <button class="btn btn-secondary" id="btnCloseReport">Close</button>
       </div>
     </div>
   </div>

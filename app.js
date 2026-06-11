@@ -34,6 +34,8 @@ const sortControl = document.getElementById('sortControl');
 const formModal = document.getElementById('formModal');
 const detailModal = document.getElementById('detailModal');
 const settingsModal = document.getElementById('settingsModal');
+const reportModal = document.getElementById('reportModal');
+const reportTableContainer = document.getElementById('reportTableContainer');
 
 // Form inputs
 const firearmForm = document.getElementById('firearmForm');
@@ -328,6 +330,12 @@ function setupEventListeners() {
   document.getElementById('btnSettings').addEventListener('click', () => openModal(settingsModal));
   document.getElementById('btnCloseSettingsModal').addEventListener('click', () => closeModal(settingsModal));
   document.getElementById('btnCloseSettings').addEventListener('click', () => closeModal(settingsModal));
+
+  // Report Modal events
+  document.getElementById('btnReport').addEventListener('click', openReportModal);
+  document.getElementById('btnCloseReportModal').addEventListener('click', () => closeModal(reportModal));
+  document.getElementById('btnCloseReport').addEventListener('click', () => closeModal(reportModal));
+  document.getElementById('btnPrintReport').addEventListener('click', () => window.print());
 
   // Search & Filtering events
   searchInput.addEventListener('input', renderGrid);
@@ -1136,4 +1144,158 @@ async function wipeDatabase() {
       }
     }
   }
+}
+
+// --- REPORT GENERATION ENGINE ---
+
+function openReportModal() {
+  generateReport();
+  openModal(reportModal);
+}
+
+function generateReport() {
+  if (firearmsList.length === 0) {
+    reportTableContainer.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No records available to generate report.</div>';
+    return;
+  }
+
+  // 1. Sort the list by Manufacturer, then Caliber, then Model
+  const sorted = [...firearmsList].sort((a, b) => {
+    const mfgCompare = (a.manufacturer || "").localeCompare(b.manufacturer || "");
+    if (mfgCompare !== 0) return mfgCompare;
+    
+    const calCompare = (a.caliber || "").localeCompare(b.caliber || "");
+    if (calCompare !== 0) return calCompare;
+    
+    return (a.model || "").localeCompare(b.model || "");
+  });
+
+  // 2. Build the table HTML
+  let html = `
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Serial Number</th>
+          <th>Condition</th>
+          <th style="text-align: right;">Value</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  let currentMfg = null;
+  let currentCal = null;
+
+  // Trackers for subtotals
+  let mfgSubtotalCount = 0;
+  let mfgSubtotalValue = 0;
+  let calSubtotalCount = 0;
+  let calSubtotalValue = 0;
+  let grandTotalCount = 0;
+  let grandTotalValue = 0;
+
+  function formatCurrency(val) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+  }
+
+  // Helpers to output subtotal rows
+  function closeCaliberGroup() {
+    if (currentCal !== null) {
+      html += `
+        <tr class="report-subtotal-row report-subtotal-caliber">
+          <td colspan="3">${currentMfg} - ${currentCal} Subtotal (${calSubtotalCount} items)</td>
+          <td style="text-align: right;">${formatCurrency(calSubtotalValue)}</td>
+        </tr>
+      `;
+      calSubtotalCount = 0;
+      calSubtotalValue = 0;
+    }
+  }
+
+  function closeMfgGroup() {
+    if (currentMfg !== null) {
+      html += `
+        <tr class="report-subtotal-row report-subtotal-manufacturer">
+          <td colspan="3">${currentMfg} Total (${mfgSubtotalCount} items)</td>
+          <td style="text-align: right;">${formatCurrency(mfgSubtotalValue)}</td>
+        </tr>
+      `;
+      mfgSubtotalCount = 0;
+      mfgSubtotalValue = 0;
+    }
+  }
+
+  // Process sorted list
+  sorted.forEach(item => {
+    const itemMfg = item.manufacturer || 'N/A';
+    const itemCal = item.caliber || 'N/A';
+    const itemVal = parseFloat(item.value) || 0;
+
+    // Check control breaks
+    if (itemMfg !== currentMfg) {
+      closeCaliberGroup();
+      closeMfgGroup();
+      
+      // Open new Mfg group
+      currentMfg = itemMfg;
+      html += `
+        <tr class="report-group-header">
+          <td colspan="4">${currentMfg}</td>
+        </tr>
+      `;
+      
+      // Open new Caliber group
+      currentCal = itemCal;
+      html += `
+        <tr class="report-subgroup-header">
+          <td colspan="4">${currentCal}</td>
+        </tr>
+      `;
+    } else if (itemCal !== currentCal) {
+      closeCaliberGroup();
+      
+      // Open new Caliber group
+      currentCal = itemCal;
+      html += `
+        <tr class="report-subgroup-header">
+          <td colspan="4">${currentCal}</td>
+        </tr>
+      `;
+    }
+
+    // Render individual item row
+    html += `
+      <tr class="report-item-row">
+        <td>${item.model || 'N/A'}</td>
+        <td>${item.serialNumber || 'N/A'}</td>
+        <td>${item.condition || 'N/A'}</td>
+        <td style="text-align: right;">${formatCurrency(itemVal)}</td>
+      </tr>
+    `;
+
+    // Accumulate values
+    calSubtotalCount++;
+    calSubtotalValue += itemVal;
+    mfgSubtotalCount++;
+    mfgSubtotalValue += itemVal;
+    grandTotalCount++;
+    grandTotalValue += itemVal;
+  });
+
+  // Close final groups
+  closeCaliberGroup();
+  closeMfgGroup();
+
+  // Render Grand Total row
+  html += `
+        <tr class="report-grand-total-row">
+          <td colspan="3">GRAND TOTAL (${grandTotalCount} items)</td>
+          <td style="text-align: right;">${formatCurrency(grandTotalValue)}</td>
+        </tr>
+      </tbody>
+    </table>
+  `;
+
+  reportTableContainer.innerHTML = html;
 }
