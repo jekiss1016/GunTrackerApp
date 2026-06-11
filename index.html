@@ -201,11 +201,7 @@
           </select>
         </div>
 
-        <div class="select-wrapper">
-          <select id="filterOwner" class="select-input">
-            <option value="">All Owners</option>
-          </select>
-        </div>
+
 
         <div class="select-wrapper">
           <select id="filterManufacturer" class="select-input">
@@ -257,19 +253,12 @@
         <div class="modal-body">
           <input type="hidden" id="firearmId">
           
-          <div class="form-row">
-            <div class="form-group">
-              <label for="owner">Owner</label>
-              <input type="text" id="owner" class="form-control" placeholder="e.g. Rob, Ekiss">
-            </div>
-            
-            <div class="form-group">
-              <label for="type">Type Category *</label>
-              <select id="type" class="form-control" required style="background: rgba(10, 13, 19, 0.9);">
-                <option value="Handgun">Handgun</option>
-                <option value="Rifle" selected>Rifle</option>
-              </select>
-            </div>
+          <div class="form-group">
+            <label for="type">Type Category *</label>
+            <select id="type" class="form-control" required style="background: rgba(10, 13, 19, 0.9);">
+              <option value="Handgun">Handgun</option>
+              <option value="Rifle" selected>Rifle</option>
+            </select>
           </div>
 
           <div class="form-row">
@@ -343,16 +332,9 @@
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="location">Storage Location</label>
-              <input type="text" id="location" class="form-control" placeholder="e.g. Gun Safe, Bedroom Closet">
-            </div>
-            
-            <div class="form-group">
-              <label for="dateAcquired">Date Acquired</label>
-              <input type="date" id="dateAcquired" class="form-control">
-            </div>
+          <div class="form-group">
+            <label for="dateAcquired">Date Acquired</label>
+            <input type="date" id="dateAcquired" class="form-control">
           </div>
 
           <div class="form-group">
@@ -405,10 +387,6 @@
             
             <table class="detail-specs-table">
               <tr>
-                <td class="label">Owner</td>
-                <td class="value" id="detailOwner">N/A</td>
-              </tr>
-              <tr>
                 <td class="label">Type</td>
                 <td class="value" id="detailType">Rifle</td>
               </tr>
@@ -427,10 +405,6 @@
               <tr>
                 <td class="label">Serial Number</td>
                 <td class="value" id="detailSerial">N/A</td>
-              </tr>
-              <tr>
-                <td class="label">Storage Location</td>
-                <td class="value" id="detailLocation">N/A</td>
               </tr>
               <tr>
                 <td class="label">Estimated Value</td>

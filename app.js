@@ -26,7 +26,6 @@ const calibersCountEl = document.getElementById('valCalibersCount');
 // Search & Filters controls
 const searchInput = document.getElementById('searchInput');
 const filterType = document.getElementById('filterType');
-const filterOwner = document.getElementById('filterOwner');
 const filterManufacturer = document.getElementById('filterManufacturer');
 const filterCaliber = document.getElementById('filterCaliber');
 const sortControl = document.getElementById('sortControl');
@@ -39,7 +38,6 @@ const settingsModal = document.getElementById('settingsModal');
 // Form inputs
 const firearmForm = document.getElementById('firearmForm');
 const firearmIdInput = document.getElementById('firearmId');
-const ownerInput = document.getElementById('owner');
 const typeInput = document.getElementById('type');
 const manufacturerInput = document.getElementById('manufacturer');
 const modelInput = document.getElementById('model');
@@ -49,7 +47,6 @@ const actionTypeInput = document.getElementById('actionType');
 const sightTypeInput = document.getElementById('sightType');
 const valueInput = document.getElementById('estimatedValue');
 const conditionInput = document.getElementById('condition');
-const locationInput = document.getElementById('location');
 const dateAcquiredInput = document.getElementById('dateAcquired');
 const notesInput = document.getElementById('notes');
 
@@ -63,7 +60,6 @@ const btnRemoveImage = document.getElementById('btnRemoveImage');
 
 // Details View
 const detailImage = document.getElementById('detailImage');
-const detailOwner = document.getElementById('detailOwner');
 const detailType = document.getElementById('detailType');
 const detailManufacturer = document.getElementById('detailManufacturer');
 const detailName = document.getElementById('detailName');
@@ -71,7 +67,6 @@ const detailCaliber = document.getElementById('detailCaliber');
 const detailAction = document.getElementById('detailAction');
 const detailSight = document.getElementById('detailSight');
 const detailSerial = document.getElementById('detailSerial');
-const detailLocation = document.getElementById('detailLocation');
 const detailValue = document.getElementById('detailValue');
 const detailCondition = document.getElementById('detailCondition');
 const detailAcquired = document.getElementById('detailAcquired');
@@ -337,7 +332,6 @@ function setupEventListeners() {
   // Search & Filtering events
   searchInput.addEventListener('input', renderGrid);
   filterType.addEventListener('change', renderGrid);
-  filterOwner.addEventListener('change', renderGrid);
   filterManufacturer.addEventListener('change', renderGrid);
   filterCaliber.addEventListener('change', renderGrid);
   sortControl.addEventListener('change', renderGrid);
@@ -560,17 +554,14 @@ function updateStats() {
 function populateFilters() {
   const currentMfg = filterManufacturer.value;
   const currentCal = filterCaliber.value;
-  const currentOwner = filterOwner.value;
 
   // Extract unique and sorted values
   const manufacturers = [...new Set(firearmsList.map(item => item.manufacturer.trim()))].sort();
   const calibers = [...new Set(firearmsList.map(item => item.caliber.trim()))].sort();
-  const owners = [...new Set(firearmsList.filter(item => item.owner && item.owner !== 'N/A').map(item => item.owner.trim()))].sort();
 
   // Reset dropdowns
   filterManufacturer.innerHTML = '<option value="">All Manufacturers</option>';
   filterCaliber.innerHTML = '<option value="">All Calibers</option>';
-  filterOwner.innerHTML = '<option value="">All Owners</option>';
 
   manufacturers.forEach(mfg => {
     const opt = document.createElement('option');
@@ -586,17 +577,9 @@ function populateFilters() {
     filterCaliber.appendChild(opt);
   });
 
-  owners.forEach(owner => {
-    const opt = document.createElement('option');
-    opt.value = owner;
-    opt.textContent = owner;
-    filterOwner.appendChild(opt);
-  });
-
   // Restore selections
   if (manufacturers.includes(currentMfg)) filterManufacturer.value = currentMfg;
   if (calibers.includes(currentCal)) filterCaliber.value = currentCal;
-  if (owners.includes(currentOwner)) filterOwner.value = currentOwner;
 }
 
 // Process selected image file
@@ -658,7 +641,6 @@ async function handleFormSubmit(e) {
 
   const id = firearmIdInput.value;
   const firearm = {
-    owner: ownerInput.value.trim() || 'N/A',
     type: typeInput.value,
     manufacturer: manufacturerInput.value.trim(),
     model: modelInput.value.trim(),
@@ -668,7 +650,6 @@ async function handleFormSubmit(e) {
     sightType: sightTypeInput.value.trim() || 'N/A',
     value: parseFloat(valueInput.value) || 0,
     condition: conditionInput.value,
-    location: locationInput.value.trim() || 'N/A',
     dateAcquired: dateAcquiredInput.value || 'N/A',
     image: base64ImageString || DEFAULT_IMAGE,
     notes: notesInput.value.trim()
@@ -702,7 +683,6 @@ function handleEditDetail() {
 
   document.getElementById('formModalTitle').textContent = 'Edit Firearm';
   firearmIdInput.value = item.id;
-  ownerInput.value = item.owner === 'N/A' ? '' : item.owner;
   typeInput.value = item.type || 'Rifle';
   manufacturerInput.value = item.manufacturer;
   modelInput.value = item.model;
@@ -712,7 +692,6 @@ function handleEditDetail() {
   sightTypeInput.value = item.sightType === 'N/A' ? '' : item.sightType;
   valueInput.value = item.value;
   conditionInput.value = item.condition;
-  locationInput.value = item.location === 'N/A' ? '' : item.location;
   dateAcquiredInput.value = item.dateAcquired === 'N/A' ? '' : item.dateAcquired;
   notesInput.value = item.notes;
 
@@ -759,13 +738,11 @@ function viewFirearmDetail(id) {
   
   detailManufacturer.textContent = item.manufacturer;
   detailName.textContent = item.model;
-  detailOwner.textContent = item.owner || 'N/A';
   detailType.textContent = item.type || 'Rifle';
   detailCaliber.textContent = item.caliber;
   detailAction.textContent = item.actionType || 'N/A';
   detailSight.textContent = item.sightType || 'N/A';
   detailSerial.textContent = item.serialNumber;
-  detailLocation.textContent = item.location || 'N/A';
   detailValue.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.value);
   detailCondition.textContent = item.condition;
   detailAcquired.textContent = item.dateAcquired;
@@ -789,31 +766,27 @@ function viewFirearmDetail(id) {
 function renderGrid() {
   const query = searchInput.value.toLowerCase().trim();
   const typeFilter = filterType.value;
-  const ownerFilter = filterOwner.value;
   const mfgFilter = filterManufacturer.value;
   const calFilter = filterCaliber.value;
   const sortVal = sortControl.value;
 
   // Filter list
   let filteredList = firearmsList.filter(item => {
-    // Search query matches manufacturer, model, caliber, serial, notes, owner, location, action, sights
+    // Search query matches manufacturer, model, caliber, serial, notes, action, sights
     const matchesQuery = !query || 
       item.manufacturer.toLowerCase().includes(query) ||
       item.model.toLowerCase().includes(query) ||
       item.caliber.toLowerCase().includes(query) ||
       (item.serialNumber && item.serialNumber.toLowerCase().includes(query)) ||
       (item.notes && item.notes.toLowerCase().includes(query)) ||
-      (item.owner && item.owner.toLowerCase().includes(query)) ||
-      (item.location && item.location.toLowerCase().includes(query)) ||
       (item.actionType && item.actionType.toLowerCase().includes(query)) ||
       (item.sightType && item.sightType.toLowerCase().includes(query));
 
     const matchesType = !typeFilter || item.type === typeFilter;
-    const matchesOwner = !ownerFilter || item.owner === ownerFilter;
     const matchesMfg = !mfgFilter || item.manufacturer === mfgFilter;
     const matchesCal = !calFilter || item.caliber === calFilter;
 
-    return matchesQuery && matchesType && matchesOwner && matchesMfg && matchesCal;
+    return matchesQuery && matchesType && matchesMfg && matchesCal;
   });
 
   // Sort list
@@ -865,8 +838,6 @@ function renderGrid() {
     // Type icon setup
     const typeIcon = (item.type === 'Handgun') ? 'fa-crosshairs' : 'fa-gun';
     const typeText = item.type || 'Rifle';
-    const ownerText = (item.owner && item.owner !== 'N/A') ? `<span style="font-size: 0.7rem; background: rgba(255,255,255,0.06); padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); color: var(--text-muted);"><i class="fa-solid fa-user" style="font-size: 0.6rem;"></i> ${item.owner}</span>` : '';
-    const locText = (item.location && item.location !== 'N/A') ? `<div style="font-size: 0.75rem; color: var(--text-dark); margin-top: 0.4rem; display: flex; align-items: center; gap: 0.25rem;"><i class="fa-solid fa-location-dot" style="font-size: 0.7rem; color: var(--color-primary); opacity: 0.7;"></i> ${item.location}</div>` : '';
 
     card.innerHTML = `
       <div class="card-image-container">
@@ -878,7 +849,6 @@ function renderGrid() {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
           <div class="card-manufacturer">${item.manufacturer}</div>
           <div style="display: flex; gap: 0.35rem;">
-            ${ownerText}
             <span style="font-size: 0.7rem; background: rgba(0, 240, 255, 0.08); padding: 0.15rem 0.4rem; border-radius: 4px; border: 1px solid rgba(0, 240, 255, 0.2); color: var(--color-accent);"><i class="fa-solid ${typeIcon}" style="font-size: 0.6rem;"></i> ${typeText}</span>
           </div>
         </div>
@@ -893,7 +863,6 @@ function renderGrid() {
             <span class="spec-value">${item.serialNumber}</span>
           </div>
         </div>
-        ${locText}
         <div class="card-actions">
           <button class="btn btn-secondary btn-view" style="padding: 0.4rem;"><i class="fa-solid fa-circle-info"></i> Details</button>
         </div>

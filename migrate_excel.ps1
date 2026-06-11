@@ -72,7 +72,6 @@ try {
         }
 
         $item = [PSCustomObject]@{
-            owner        = "Ekiss"
             type         = Get-MappedType $row["Gun Category"]
             manufacturer = $mfg
             model        = $model
@@ -82,7 +81,6 @@ try {
             sightType    = Get-SafeValue $row["Sight Type"] "N/A"
             value        = Get-SafeNumeric $row["Estimated Value"]
             condition    = "Good"
-            location     = "N/A"
             dateAcquired = "N/A"
             image        = "" # Let the web application use the default SVG placeholder
             notes        = $notes.Trim()

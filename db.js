@@ -39,7 +39,6 @@
   // --- MAPPING HELPERS ---
   function mapToDb(firearm) {
     return {
-      owner: firearm.owner,
       type: firearm.type,
       manufacturer: firearm.manufacturer,
       model: firearm.model,
@@ -49,7 +48,6 @@
       sight_type: firearm.sightType,
       value: firearm.value,
       condition: firearm.condition,
-      location: firearm.location,
       date_acquired: firearm.dateAcquired,
       image: firearm.image,
       notes: firearm.notes
@@ -59,7 +57,6 @@
   function mapFromDb(dbItem) {
     return {
       id: dbItem.id,
-      owner: dbItem.owner,
       type: dbItem.type,
       manufacturer: dbItem.manufacturer,
       model: dbItem.model,
@@ -69,7 +66,6 @@
       sightType: dbItem.sight_type,
       value: parseFloat(dbItem.value) || 0,
       condition: dbItem.condition,
-      location: dbItem.location,
       dateAcquired: dbItem.date_acquired,
       image: dbItem.image,
       notes: dbItem.notes
