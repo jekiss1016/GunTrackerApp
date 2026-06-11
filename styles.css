@@ -699,6 +699,13 @@ header {
   transition: transform var(--transition-speed) cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
+.modal-container form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
 .modal-overlay.active .modal-container {
   transform: translateY(0);
 }
