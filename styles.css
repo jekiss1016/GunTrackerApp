@@ -883,6 +883,9 @@ textarea.form-control {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
+  .detail-image-box {
+    height: 240px;
+  }
 }
 
 .detail-image-box {
@@ -1187,4 +1190,17 @@ footer {
 
 .user-list-table tr:hover {
   background: rgba(255, 255, 255, 0.02);
+}
+
+/* Responsive Modal Scrolling to fix cut-off issues on smaller screens/heights */
+@media (max-width: 768px), (max-height: 800px) {
+  .modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+  .modal-container {
+    max-height: none;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
 }
