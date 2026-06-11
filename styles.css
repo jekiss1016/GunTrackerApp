@@ -704,6 +704,7 @@ header {
   flex-direction: column;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .modal-overlay.active .modal-container {
