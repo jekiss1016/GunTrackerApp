@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">ArmoryVaultPro</string>
-    <string name="title_activity_main">ArmoryVaultPro</string>
+    <string name="app_name">ArmoryVault Pro</string>
+    <string name="title_activity_main">ArmoryVault Pro</string>
     <string name="package_name">com.example.armoryvaultpro</string>
     <string name="custom_url_scheme">com.example.armoryvaultpro</string>
 </resources>

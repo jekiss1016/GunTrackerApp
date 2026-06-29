@@ -699,6 +699,7 @@ header {
   transition: transform var(--transition-speed) cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
+/* Fix for scrolling when form is used inside modal-container */
 .modal-container form {
   display: flex;
   flex-direction: column;
